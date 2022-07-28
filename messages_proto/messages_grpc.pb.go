@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.4
-// source: message_proto/messages.proto
+// source: messages_proto/messages.proto
 
 package messages_proto
 
@@ -311,5 +311,5 @@ var CalculatorService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "message_proto/messages.proto",
+	Metadata: "messages_proto/messages.proto",
 }
