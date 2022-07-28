@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package calculator;
+
+option go_package = "./messages.proto";
+
+message SumRequest{
+    int32 num_a = 1;
+    int32 num_b = 2;
+}
+
+message SumResponse{
+    int32 result = 1;
+}
+
+message PrimeRequest{
+    int32 num = 1;
+}
+
+message PrimeResponse{
+    int32 result = 1;
+}
+
+message AverageRequest{
+    int32 num = 1;
+}
+
+message AverageResponse{
+    int32 result=1;
+}
+
+message MaxRequest{
+    int32 num = 1;
+}
+
+message MaxResponse{
+    int32 result=1;
+}
+
+
+service CalculatorService{
+    // Unary
+    rpc Sum(SumRequest) returns (SumResponse) {};
+
+    // Server Streaming
+    rpc PrimeLister(PrimeRequest) returns (stream PrimeResponse){};
+
+    // Client Streaming
+    rpc AverageCalculator(stream AverageRequest) returns (AverageResponse){};
+
+    // Bidirectional Streaming
+    rpc MaxCalculator(stream MaxRequest) returns (stream MaxResponse){};
+}
