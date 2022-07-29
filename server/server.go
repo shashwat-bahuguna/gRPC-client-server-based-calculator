@@ -15,7 +15,7 @@ import (
 	"gRPC-based-calculator/messages_proto"
 )
 
-var INT32_MIN int32 = -2147483648
+const INT32_MIN int32 = -2147483648
 
 type server struct {
 	messages_proto.UnimplementedCalculatorServiceServer
@@ -50,30 +50,65 @@ func (*server) PrimeLister(req *messages_proto.PrimeRequest, resp_interface mess
 		if num%i == 0 && isPrime(i) {
 			resp.Result = i
 			resp_interface.Send(&resp)
+			fmt.Printf("Sending to Client: %v\n", resp.Result)
 		}
 	}
+
+	fmt.Printf("Prime Listing Request Completed\n")
 	return nil
 }
 
-func (*server) MaxCalculator(stream messages_proto.CalculatorService_MaxCalculatorServer) error {
-	fmt.Println("Max Calculator Request Recieved")
+func (*server) AverageCalculator(stream messages_proto.CalculatorService_AverageCalculatorServer) error {
+	fmt.Println("Average Calculator Request Recieved")
 
-	res := INT32_MIN
-
+	var n int32 = 0
+	var sum int32 = 0
 	for {
 		msg, err := stream.Recv()
 		if err == io.EOF {
 			//we have finished reading client stream
-			return stream.Send(&messages_proto.MaxResponse{Result: res})
+			fmt.Printf("Average Calculator Request Completed, Res: %v\n", sum/n)
+			return stream.SendAndClose(&messages_proto.AverageResponse{Result: sum / n})
 		}
 
 		if err != nil {
-			log.Fatalf("Error while reading client stream : %v", err)
+			log.Fatalf("Error while reading client stream : %v\n", err)
+			return err
+		}
+		n++
+		sum += msg.Num
+	}
+}
+
+func (*server) MaxCalculator(stream messages_proto.CalculatorService_MaxCalculatorServer) error {
+	fmt.Println("Max Calculator Request Recieved")
+	defer fmt.Println("Max Calculator Request Completed")
+
+	resp := messages_proto.MaxResponse{}
+	resp.Result = INT32_MIN
+	for {
+		msg, err := stream.Recv()
+
+		if err == io.EOF {
+			return nil
 		}
 
-		if msg.Num > res {
-			res = msg.Num
+		if err != nil {
+			log.Fatalf("Error while recieving message in max calculator: %v\n", err)
+			return err
 		}
+
+		if msg.GetNum() > resp.Result {
+			resp.Result = msg.GetNum()
+		}
+
+		fmt.Printf("Writing to client: %v\n", resp.Result)
+		err = stream.Send(&resp)
+		if err != nil {
+			log.Fatalf("Error while sending response in Send: %v\n", err)
+			return err
+		}
+
 	}
 }
 
